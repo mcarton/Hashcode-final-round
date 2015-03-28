@@ -72,21 +72,9 @@ def score(problem, solution):
     balloons_alt = [0 for _ in range(problem.num_ballons)]
     r = 0
 
-    for turn_id in problem.turns:
-        # on calcul les points du tour
-        for target in problem.targets:
-            covered = False
+    targets_set = set((target.i, target.j) for target in problem.targets)
 
-            for b_id in range(problem.num_ballons):
-                pos = balloons_pos[b_id]
-                if balloons_alt[b_id] > 0 and pos.valid(problem): # ballon valide
-                    if (pos.i - target.i)**2 + column_dist(pos.j, target.j)**2 <= problem.radius**2:
-                        covered = True
-                        break
-
-            if covered:
-                r += 1
-
+    for turn_id in range(problem.turns):
         # déplacement en altitude
         for b_id in range(problem.num_ballons):
             pos = balloons_pos[b_id]
@@ -101,11 +89,22 @@ def score(problem, solution):
         # vent
         for b_id in range(problem.num_ballons):
             pos = balloons_pos[b_id]
-            a = balloons_alt[b_id]
-            if pos.valid(problem):
-                i = pos.i + problem.mov_grids[a][pos.i][pos.j].i
-                j = (pos.j + problem.mov_grids[a][pos.i][pos.j].j) % problem.cols
-                balloons_alt[b_id] = Point(i, j)
+            alt = balloons_alt[b_id]
+            if alt > 0 and pos.valid(problem):
+                i = pos.i + problem.mov_grids[alt][pos.i][pos.j].i
+                j = (pos.j + problem.mov_grids[alt][pos.i][pos.j].j) % problem.cols
+                balloons_pos[b_id] = Point(i, j)
+
+        # on calcul les points du tour
+        covered = set()
+        for b_id in range(problem.num_ballons):
+            pos = balloons_pos[b_id]
+            if balloons_alt[b_id] > 0 and pos.valid(problem): # ballon valide
+                for cell in covered_cells(problem, pos):
+                    if (cell.i, cell.j) in targets_set:
+                        covered.add((cell.i, cell.j))
+
+        r += len(covered)
 
     return r
 
@@ -139,9 +138,26 @@ def parse_problem(f):
                    Point(starting_cell_i, starting_cell_j), mov_grids)
 
 
+def parse_solution(problem, f):
+    solution = []
+
+    for _ in range(problem.turns):
+        solution.append(list(map(int, f.readline().strip().split())))
+
+    return solution
+
+
 def column_dist(problem, c1, c2):
     diff = abs(c1 - c2)
     return min(diff, problem.cols - diff)
+
+
+def covered_cells(problem, p):
+    for i in range(p.i - problem.radius, p.i + problem.radius + 1):
+        for j in range(p.j - problem.radius, p.j + problem.radius + 1):
+            pos = Point(i, j % problem.cols)
+            if pos.valid(problem) and (p.i - pos.i)**2 + column_dist(problem, p.j, pos.j)**2 <= problem.radius**2:
+                yield pos
 
 
 def is_covered(problem, balloon, target):
@@ -166,5 +182,5 @@ if __name__ == '__main__':
         exit(1)
 
     with open(sys.argv[1], 'r') as f:
-        p = parse_problem(f)
-        p.print()
+        problem = parse_problem(f)
+        problem.print()
