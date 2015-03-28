@@ -76,6 +76,12 @@ def score(problem, solution):
 
     grid = [[False for _ in range(problem.cols)] for _ in range(problem.rows)]
 
+    cells = []
+    for i in range(-problem.radius, problem.radius + 1):
+        for j in range(-problem.radius, problem.radius + 1):
+            if i**2 + j**2 <= problem.radius**2:
+                cells.append((i, j))
+
     for turn_id in range(problem.turns):
         # déplacement en altitude
         for b_id in range(problem.num_ballons):
@@ -101,8 +107,11 @@ def score(problem, solution):
         for b_id in range(problem.num_ballons):
             pos = balloons_pos[b_id]
             if balloons_alt[b_id] > 0 and pos.valid(problem): # ballon valide
-                for cell in covered_cells(problem, pos):
-                    grid[cell.i][cell.j] = True
+                for cell_i, cell_j in cells:
+                    i = pos.i + cell_i
+                    j = (pos.j + cell_j) % problem.cols
+                    if i >= 0 and i < problem.rows and j >= 0 and j < problem.cols:
+                        grid[i][j] = True
 
         for target in problem.targets:
             if grid[target.i][target.j]:
