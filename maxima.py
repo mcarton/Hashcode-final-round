@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import sys
+import random
+import copy
 
 
 class Point:
@@ -147,6 +149,19 @@ def parse_solution(problem, f):
     return solution
 
 
+def generate_solution(problem, solution):
+    result = ''
+    for turn in solution:
+        result += ' '.join(str(move) for move in turn) + '\n'
+
+    return result
+
+
+def write_solution(problem, solution, filename):
+    with open(filename, 'w') as f:
+        f.write(generate_solution(problem, solution))
+
+
 def column_dist(problem, c1, c2):
     diff = abs(c1 - c2)
     return min(diff, problem.cols - diff)
@@ -176,6 +191,45 @@ def nb_covered(solution):
     return nb
 
 
+def random_balloon(problem, solution, b_id, iterations=None):
+    max_solution = None
+    max_score = 0
+
+    if iterations is None:
+        iterations = 10 ** 9
+
+    for _ in range(iterations):
+        alt = 0
+        for turn_id in range(problem.turns):
+            if alt == 0:
+                solution[turn_id][b_id] = 1
+            elif alt == problem.altitudes:
+                solution[turn_id][b_id] = random.choice((-1, 0))
+            elif alt == 1:
+                solution[turn_id][b_id] = random.choice((0, 1))
+            else:
+                solution[turn_id][b_id] = random.choice((-1, 0, 1))
+
+            alt += solution[turn_id][b_id]
+
+        s = score(problem, solution)
+        if s > max_score:
+            max_score = s
+            max_solution = copy.deepcopy(solution)
+
+    return max_solution
+
+
+def random_solution(problem, iterations):
+    solution = [[0 for _ in range(problem.num_ballons)] for _ in range(problem.turns)]
+
+    for b_id in range(problem.num_ballons):
+        solution = random_balloon(problem, solution, b_id, iterations)
+        print('current score: %d' % score(problem, solution))
+
+    return solution
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('usage: %s FILE' % sys.argv[0], file=sys.stderr)
@@ -183,4 +237,6 @@ if __name__ == '__main__':
 
     with open(sys.argv[1], 'r') as f:
         problem = parse_problem(f)
-        problem.print()
+        solution = random_solution(problem, 10)
+        s = score(problem, solution)
+        write_solution(problem, solution, '%d.out' % s)
