@@ -72,14 +72,40 @@ def score(problem, solution):
     balloons_alt = [0 for _ in range(problem.num_ballons)]
     r = 0
 
-    for _ in problem.turns:
+    for turn_id in problem.turns:
         # on calcul les points du tour
-        covered_cells = set()
+        for target in problem.targets:
+            covered = False
+
+            for b_id in range(problem.num_ballons):
+                pos = balloons_pos[b_id]
+                if balloons_alt[b_id] > 0 and pos.valid(problem): # ballon valide
+                    if (pos.i - target.i)**2 + column_dist(pos.j, target.j)**2 <= problem.radius**2:
+                        covered = True
+                        break
+
+            if covered:
+                r += 1
+
+        # déplacement en altitude
         for b_id in range(problem.num_ballons):
-            if (balloons_alt[b_id] > 0
-                    and balloons_alt[b_id] <= problem.altitudes
-                    and balloons_pos[b_id].valid(problem)):
-                pass
+            pos = balloons_pos[b_id]
+            if pos.valid(problem):
+                if balloons_alt[b_id] == 0:
+                    assert(solution[turn_id][b_id] == 0 or solution[turn_id][b_id] == 1)
+                    balloons_alt[b_id] += solution[turn_id][b_id]
+                else:
+                    balloons_alt[b_id] += solution[turn_id][b_id]
+                    assert(balloons_alt[b_id] > 0 and balloons_alt[b_id] <= problem.altitudes)
+
+        # vent
+        for b_id in range(problem.num_ballons):
+            pos = balloons_pos[b_id]
+            a = balloons_alt[b_id]
+            if pos.valid(problem):
+                i = pos.i + problem.mov_grids[a][pos.i][pos.j].i
+                j = (pos.j + problem.mov_grids[a][pos.i][pos.j].j) % problem.cols
+                balloons_alt[b_id] = Point(i, j)
 
     return r
 
