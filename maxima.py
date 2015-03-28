@@ -77,6 +77,28 @@ def parse_problem(f):
                    Point(starting_cell_i, starting_cell_j), mov_grids)
 
 
+def column_dist(problem, c1, c2):
+    diff = abs(c1-c2)
+    return min(diff, problem.cols - diff)
+
+
+def is_covered(problem, balloon, target):
+    r, c, a = balloon
+    u, v = target
+    return (r-u)**2 * column_dist(c, v)**2 <= problem.radius
+
+
+def nb_covered(problem):
+    nb = 0
+    for target in problem.targets:
+        for balloon in problem.balloons:
+            if is_covered(problem, balloon, target):
+                nb += 1
+                break
+    return nb
+
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('usage: %s FILE' % sys.argv[0], file=sys.stderr)
