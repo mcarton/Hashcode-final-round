@@ -12,6 +12,15 @@ class Point:
         return 'Point(%d, %d)' % (self.i, self.j)
 
 
+class Coordinates:
+    def __init__(self, pt, alt):
+        self.pt = pt
+        self.alt = alt
+
+    def __repr__(self):
+        return 'Coord(%d, %d, %d)' % (self.pt.i, self.pt.j, self.alt)
+
+
 class Problem:
     def __init__(self, rows, cols, altitudes, targets, radius, num_ballons, turns, starting_cell, mov_grids):
         self.rows = rows
@@ -48,6 +57,13 @@ class Problem:
             assert(all(len(row) == self.cols for row in self.mov_grids[a]))
 
 
+
+class Solution:
+    def __init__(prb):
+        self.prb = prb
+        self.balloons = [Coord(self.prb.starting_cell, 0)] * self.prb.num_ballons
+
+
 def parse_problem(f):
     rows, cols, altitudes = map(int, f.readline().strip().split())
     num_targets, radius, num_ballons, turns = map(int, f.readline().strip().split())
@@ -78,21 +94,21 @@ def parse_problem(f):
 
 
 def column_dist(problem, c1, c2):
-    diff = abs(c1-c2)
+    diff = abs(c1 - c2)
     return min(diff, problem.cols - diff)
 
 
 def is_covered(problem, balloon, target):
-    r, c, a = balloon
-    u, v = target
-    return (r-u)**2 * column_dist(c, v)**2 <= problem.radius
+    r, c = balloon.pt.i, balloon.pt.j
+    u, v = target.i, target.j
+    return (r - u)**2 + column_dist(c, v)**2 <= problem.radius**2
 
 
-def nb_covered(problem):
+def nb_covered(solution):
     nb = 0
-    for target in problem.targets:
-        for balloon in problem.balloons:
-            if is_covered(problem, balloon, target):
+    for target in solution.prb.targets:
+        for balloon in solution.balloons:
+            if is_covered(solution.prb, balloon, target):
                 nb += 1
                 break
     return nb
