@@ -8,6 +8,9 @@ class Point:
         self.i = i
         self.j = j
 
+    def valid(self, problem):
+        return self.i >= 0 and self.i < problem.rows and self.j >= 0 and self.j < problem.cols
+
     def __repr__(self):
         return 'Point(%d, %d)' % (self.i, self.j)
 
@@ -57,11 +60,28 @@ class Problem:
             assert(all(len(row) == self.cols for row in self.mov_grids[a]))
 
 
-
 class Solution:
     def __init__(prb):
         self.prb = prb
         self.balloons = [Coord(self.prb.starting_cell, 0)] * self.prb.num_ballons
+
+
+def score(problem, solution):
+    # solution[turn][balloon_id] = {1, 0, -1}
+    balloons_pos = [problem.starting_cell for _ in range(problem.num_ballons)]
+    balloons_alt = [0 for _ in range(problem.num_ballons)]
+    r = 0
+
+    for _ in problem.turns:
+        # on calcul les points du tour
+        covered_cells = set()
+        for b_id in range(problem.num_ballons):
+            if (balloons_alt[b_id] > 0
+                    and balloons_alt[b_id] <= problem.altitudes
+                    and balloons_pos[b_id].valid(problem)):
+                pass
+
+    return r
 
 
 def parse_problem(f):
