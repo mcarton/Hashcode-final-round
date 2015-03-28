@@ -15,7 +15,7 @@ class Point:
         return 'Point(%d, %d)' % (self.i, self.j)
 
 
-class Coordinates:
+class Coord:
     def __init__(self, pt, alt):
         self.pt = pt
         self.alt = alt
@@ -61,9 +61,9 @@ class Problem:
 
 
 class Solution:
-    def __init__(prb):
-        self.prb = prb
-        self.balloons = [Coord(self.prb.starting_cell, 0)] * self.prb.num_ballons
+    def __init__(self, problem):
+        self.problem = problem
+        self.balloons = [Coord(self.problem.starting_cell, 0) for _ in range(self.problem.num_ballons)]
 
 
 def score(problem, solution):
@@ -158,7 +158,6 @@ def nb_covered(solution):
                 nb += 1
                 break
     return nb
-
 
 
 if __name__ == '__main__':
